@@ -53,6 +53,7 @@ function getRestaurantQ(socket, restaurantID, user) {
     .catch(err => console.error(err));
 }
 
+// to show restaurant q
 io.on("connection", function(socket) {
   socket.on("restaurant room", function(data) {
     socket.join(data.restaurant.id);
@@ -60,5 +61,25 @@ io.on("connection", function(socket) {
   });
   socket.on("back", function(data) {
     socket.leave(data);
+  });
+  //to join the q
+  socket.on("join q", function(data) {
+    axios
+      .post("http://127.0.0.1:8000/queue/create/", data)
+      .then(res => res.data)
+      .then(restaurant => {
+        io.in(restaurant.id).emit("update queue");
+      })
+      .catch(err => console.error(err));
+  });
+  // for leaving the q
+  socket.on("leave q", function(data) {
+    axios
+      .delete("http://127.0.0.1:8000/queue/delete/" + data.id + "/")
+      .then(res => res.data)
+      .then(restaurant => {
+        io.in(restaurant.id).emit("update queue");
+      })
+      .catch(err => console.error(err));
   });
 });
